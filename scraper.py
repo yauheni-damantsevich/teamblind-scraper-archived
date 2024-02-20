@@ -41,7 +41,6 @@ time.sleep(1)
 page_info = driver.find_element(By.CSS_SELECTOR, ".job_page_inactive:last-of-type")
 page_count = int(page_info.text)
 
-next_page = driver.find_element(By.CSS_SELECTOR, ".job_pagination_arrow:last-of-type")
 
 links = []
 titles = []
@@ -50,22 +49,35 @@ page = 1
 
 print(page_count)
 
-for page in range(1, page_count + 1):
+for page in range(1, 4):
 
-    items = driver.find_elements(By.CSS_SELECTOR, ".job_wrapper")
+    wait = WebDriverWait(driver, 10)
+    wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, ".job_wrapper")))
 
-    for item in items:
-        item.click()
-        item_title = item.find_element(
-            By.CSS_SELECTOR, ".job_title p:nth-child(1)"
-        ).text
-        current_url = driver.current_url
-        links.append(current_url)
-        titles.append(item_title)
-        driver.back()
+    items_count = len(driver.find_elements(By.CSS_SELECTOR, ".job_wrapper"))
+
+    for i in range(items_count):
+        items = driver.find_elements(By.CSS_SELECTOR, ".job_wrapper")
+        if i < len(items):
+            item = items[i]
+            item.click()
+            item_title = item.find_element(
+                By.CSS_SELECTOR, ".job_title p:nth-child(1)"
+            ).text
+            current_url = driver.current_url
+            titles.append(item_title)
+            links.append(current_url)
+            wait.until(
+                EC.presence_of_all_elements_located((By.CSS_SELECTOR, ".job_wrapper"))
+            )
+        else:
+            print(f"Index {i} is out of range, skipping to next item.")
 
     time.sleep(4)
 
+    next_page = driver.find_element(
+        By.CSS_SELECTOR, ".job_pagination_arrow:last-of-type"
+    )
     next_page.click()
 
 driver.quit()
